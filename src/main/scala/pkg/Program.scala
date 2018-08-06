@@ -43,7 +43,7 @@ class DBAccess {
       val q = for ((u, v) <- usersdb join vehiclesdb
         on (_.id === _.id_user)
       ) yield (u.id, u.nickname, v.vtype, v.brand)
-      val dbAction = q.result//.transactionally
+      val dbAction = q.result
       val items = db.run(dbAction)
 
     items
@@ -57,18 +57,67 @@ object Program extends App{
     ConfigFactory.load().getString("mydb.db.password"),
     driver=ConfigFactory.load().getString("mydb.db.driver"))
 
+
   val mdB  = new DBAccess()
   val items=mdB.getUserVehicles(db)
 
+/*
+   items.onComplete(
+     x =>
+     x match {
+       case Success(items) => {
+         println("sc")
+         //Option[List[UserVehicle]](posts.map(gh=>UserVehicle(gh._1,gh._2,gh._3,gh._4)).toList)
+        val rc= items.map(gh=>UserVehicle(gh._1,gh._2,gh._3,gh._4))
+         println(rc.size)
+         rc.foreach(println(_))
+       }
+       case _=>
+         {
+           println("yes")
+         }
+       case Failure(t) => println("An error has occurred: " + t.getMessage)
+     }
+   )
+   */
+
+  //-----------------------------
+  /*{
+       x.foreach(hy => {
+         hy.map(gh => UserVehicle(gh._1,gh._2,gh._3,gh._4))
+       })
+     }
+
+   )*/
+
+/*
   items.onComplete(
-    x => {
-      x.foreach(hy => {
-        hy.foreach(gh => println(gh))
+    xTry => {
+      xTry.map(sEq => {
+        /*
+        sEq.foreach(row => println(row))
+        */
+        val rc= sEq.map(gh=>UserVehicle(gh._1,gh._2,gh._3,gh._4))
+        println(rc.size)
+        rc.foreach(println(_))
       })
     }
   )
+*/
+  //items.onSuccess { case s => println(s"Result: $s") }
+/*
+  items.onSuccess { case sEq => {
+    val rc= sEq//.map(gh=>UserVehicle(gh._1,gh._2,gh._3,gh._4)).toList
+    println(rc.size)
+    rc.foreach(println(_))
+  } }
+*/
+  val sEq  = Await.result(items, 5.seconds)
+  val rc= sEq.map(gh=>UserVehicle(gh._1,gh._2,gh._3,gh._4)).toList
+  println(rc.size)
+  rc.foreach(println(_))
 
-
+//   hy.map(gh => UserVehicle(gh._1,gh._2,gh._3,gh._4))
   db.close
 }
 
