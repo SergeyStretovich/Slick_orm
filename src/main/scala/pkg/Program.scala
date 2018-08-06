@@ -11,6 +11,7 @@ import slick.driver.JdbcProfile
 import slick.driver.PostgresDriver
 import slick.driver.PostgresDriver.api._
 import slick.jdbc.JdbcBackend.Database
+import com.typesafe.config.ConfigFactory
 
 import scala.util.{Failure, Success}
 
@@ -35,9 +36,13 @@ case class UserVehicle(id:Int,name:String,vehicleType:String,vehicleManufacturer
 class DBAccess {
   def getUserVehicles():Unit={
     println("___select from database___")
-    val dbConfig: DatabaseConfig[PostgresDriver] = DatabaseConfig.forConfig("mydb")
-    val db = dbConfig.db
-    println("db " + db)
+    //val db = Database.forURL("jdbc:postgresql://localhost:5432/SLICKORM","postgres","trustno1", driver="org.postgresql.Driver")
+    val db = Database.forURL(ConfigFactory.load().getString("mydb.db.url"),
+      ConfigFactory.load().getString("mydb.db.user"),
+      ConfigFactory.load().getString("mydb.db.password"),
+      driver=ConfigFactory.load().getString("mydb.db.driver"))
+
+
     try {
       val usersdb = TableQuery[Users]
       val vehiclesdb = TableQuery[Vehicles]
@@ -75,8 +80,6 @@ object Program extends App{
   mdB.getUserVehicles()
 }
 
-
-//   <logger name="scala.slick" level="INFO" />
 
 
 
