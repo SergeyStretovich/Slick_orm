@@ -11,8 +11,8 @@ import slick.jdbc.JdbcBackend.Database
 import com.typesafe.config.ConfigFactory
 import slick.lifted.TableQuery
 import slick.driver.PostgresDriver.api._
+import slick.jdbc.JdbcBackend
 import slick.jdbc.JdbcBackend.Database
-
 
 import scala.util.{Failure, Success}
 
@@ -35,110 +35,42 @@ class Vehicles(tag: Tag) extends Table[(Int,String, String)](tag, "vehicles") {
 case class UserVehicle(id:Int,name:String,vehicleType:String,vehicleManufacturer:String)
 
 class DBAccess {
-  def getUserVehicles():Unit={
+  def getUserVehicles(db:JdbcBackend.DatabaseDef):Future[Seq[(Int,String,String,String)]]={
     println("___select from database___")
-    //val db = Database.forURL("jdbc:postgresql://localhost:5432/SLICKORM","postgres","trustno1", driver="org.postgresql.Driver")
-    val db = Database.forURL(ConfigFactory.load().getString("mydb.db.url"),
-      ConfigFactory.load().getString("mydb.db.user"),
-      ConfigFactory.load().getString("mydb.db.password"),
-      driver=ConfigFactory.load().getString("mydb.db.driver"))
-
-
-    try {
       val usersdb = TableQuery[Users]
       val vehiclesdb = TableQuery[Vehicles]
-      /*
-val act=usersdb.result
-    val myres=db.run(act)
-    myres.onComplete(x=>{
-      x.foreach(hy=>println(hy))
-    })
-*/
+
       val q = for ((u, v) <- usersdb join vehiclesdb
         on (_.id === _.id_user)
       ) yield (u.id, u.nickname, v.vtype, v.brand)
-      val dbAction = q.result
-      // val f: Future[Seq[String]] = db.run(dbAction)
-      val f = db.run(dbAction)
-      f.onComplete(
-        x => {
-          x.foreach(hy => {
-            hy.foreach(gh => println(gh))
-          })
-        }
-      )
-    }
-    catch {
-      case _: Throwable => println("got some exception")
-    }
-    finally
-      db.close
+      val dbAction = q.result//.transactionally
+      val items = db.run(dbAction)
+
+    items
   }
 }
 
 object Program extends App{
-  val mdB  = new DBAccess
-  mdB.getUserVehicles()
+
+  val db:JdbcBackend.DatabaseDef = Database.forURL(ConfigFactory.load().getString("mydb.db.url"),
+    ConfigFactory.load().getString("mydb.db.user"),
+    ConfigFactory.load().getString("mydb.db.password"),
+    driver=ConfigFactory.load().getString("mydb.db.driver"))
+
+  val mdB  = new DBAccess()
+  val items=mdB.getUserVehicles(db)
+
+  items.onComplete(
+    x => {
+      x.foreach(hy => {
+        hy.foreach(gh => println(gh))
+      })
+    }
+  )
+
+
+  db.close
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
