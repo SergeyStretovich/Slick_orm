@@ -1,7 +1,5 @@
 package pkg
 
-import slick.driver.PostgresDriver.api._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent._
@@ -9,9 +7,12 @@ import scala.concurrent.duration._
 import slick.backend.DatabaseConfig
 import slick.driver.JdbcProfile
 import slick.driver.PostgresDriver
-import slick.driver.PostgresDriver.api._
 import slick.jdbc.JdbcBackend.Database
 import com.typesafe.config.ConfigFactory
+import slick.lifted.TableQuery
+import slick.driver.PostgresDriver.api._
+import slick.jdbc.JdbcBackend.Database
+
 
 import scala.util.{Failure, Success}
 
